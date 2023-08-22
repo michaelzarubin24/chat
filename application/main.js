@@ -1,62 +1,117 @@
 "use strict";
 
-// 1. Find form---------------------------------------------------------------------------------------------
-let form = document.querySelector("form");
-console.log(["find form"], form);
+const app = document.querySelector("#app");
 
-// 2. Print every child of form to console------------------------------------------------------------------
-let inputFirstName = document.getElementsByName("name")[0];
-console.log(["direct input call"], inputFirstName);
-const kekInput = document.getElementById("kek");
-console.log(["direct kekinput call"], kekInput);
-const select = document.querySelector("select");
-console.log(["direct select call"], select);
-const button = document.getElementById("btn");
-console.log(["direct button call"], button);
+function Tag(attrs = {}) {
+  const { tag, cn, id, textContent, placeholder, type } = attrs;
+  const element = document.createElement(tag);
+  element.className = cn;
 
-// 3. Find inputs without direct calls----------------------------------------------------------------------
-console.log(["find using children"], form.children[0], form.children[1]);
+  if (id) element.id = id;
+  if (textContent) element.textContent = textContent;
+  if (placeholder) element.placeholder = placeholder;
+  if (type) element.type = type;
+  return element;
+}
 
-// 4, 5, 7 Validation---------------------------------------------------------------------------------------
-document.addEventListener("DOMContentLoaded", function () {
-  const form = document.getElementById("form");
-  const nameInput = document.querySelector('input[name="name"]');
-  const surnameInput = document.querySelector('input[name="surname"]');
+const form = Tag({
+  tag: "form",
+  cn: "form",
+});
 
-  form.addEventListener("submit", function (e) {
-    e.preventDefault(); // Prevent the default form submission
+const emailInput = Tag({
+  tag: "input",
+  cn: "input",
+  id: "email-input",
+  placeholder: "Enter your email",
+});
 
-    const nameValue = nameInput.value.trim();
-    const surnameValue = surnameInput.value.trim();
+const passwordInput = Tag({
+  tag: "input",
+  cn: "input",
+  id: "password-input",
+  placeholder: "Enter your password",
+  type: "password",
+});
 
-    if (nameValue.length > 4 && surnameValue.length > 5) {
-      // Validation successful
-      // nameInput.style.background && surnameInput.style.background = "lightblue"; ?????????????
-      nameInput.style.background = "lightblue";
-      surnameInput.style.background = "lightblue";
-      alert("Validation successful! Congratulations!");
-    } else {
-      // Validation failed
-      if (nameValue.length <= 4) {
-        nameInput.style.background = "red";
-        console.log(
-          ["Name validation failed"],
-          "Name must have more than 4 characters."
-        );
-        nameInput.focus();
+const submitButton = Tag({
+  tag: "button",
+  cn: "button",
+  id: "submit-btn",
+  textContent: "Submit",
+});
+
+form.append(emailInput, passwordInput, submitButton);
+
+app.append(form);
+// ---------------------------------------------------------------------------HIGHLIGHTER---------------------------------------------------------------------------------------
+emailInput.addEventListener("keydown", highlightText);
+emailInput.addEventListener("blur", removeHighlight);
+passwordInput.addEventListener("keydown", highlightText);
+passwordInput.addEventListener("blur", removeHighlight);
+
+function highlightText(event) {
+  event.target.style.backgroundColor = "lightblue";
+}
+
+function removeHighlight(event) {
+  event.target.style.backgroundColor = "";
+}
+// ---------------------------------------------------------------------------VALIDATION---------------------------------------------------------------------------------------
+form.addEventListener("submit", (e) => {
+  e.preventDefault();
+  const emailValue = emailInput.value.trim();
+  const passwordValue = passwordInput.value.trim();
+
+  function containsLettersAndNumbers(input) {
+    let hasLetters = false;
+    let hasNumbers = false;
+
+    for (let char of input) {
+      if (/[a-zA-Z]/.test(char)) {
+        hasLetters = true;
+      } else if (/[0-9]/.test(char)) {
+        hasNumbers = true;
       }
-      if (surnameValue.length <= 5) {
-        surnameInput.style.background = "red";
-        console.log(
-          ["Surname validation failed"],
-          "Surname must have more than 5 characters."
-        );
-        surnameInput.focus();
+
+      if (hasLetters && hasNumbers) {
+        return true;
       }
     }
-  });
+
+    return false;
+  }
+
+  if (
+    emailValue.length > 4 &&
+    passwordValue.length > 4 &&
+    containsLettersAndNumbers(emailValue) &&
+    containsLettersAndNumbers(passwordValue)
+  ) {
+    emailInput.style.backgroundColor = "lightblue";
+    passwordInput.style.backgroundColor = "lightblue";
+    alert("Validation successful! Congratulations!");
+
+    submitButton.removeAttribute("disabled");
+  } else {
+    // Validation failed
+    if (emailValue.length <= 4 || !containsLettersAndNumbers(emailValue)) {
+      emailInput.style.backgroundColor = "red";
+      console.log(
+        "Email validation failed: Email must have more than 4 characters and contain both letters and numbers."
+      );
+      emailInput.focus();
+    }
+    if (
+      passwordValue.length <= 4 ||
+      !containsLettersAndNumbers(passwordValue)
+    ) {
+      passwordInput.style.backgroundColor = "red";
+      console.log(
+        "Password validation failed: Password must have more than 4 characters and contain both letters and numbers."
+      );
+      passwordInput.focus();
+    }
+    submitButton.setAttribute("disabled", "true");
+  }
 });
-// 6. Side must be dark
-const side = document.getElementById("side");
-console.log(["find side"], side);
-side.style.background = "grey";
